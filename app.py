@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
+import os
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
@@ -46,4 +47,19 @@ def delete(todo_id):
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+    
+    # 環境変数から設定を取得
+    host = os.environ.get('HOST', '127.0.0.1')         # ローカルからのみアクセス可能
+    port = int(os.environ.get('PORT', 5001))           # デフォルトでポート番号を5001に設定(←5000は既に使用されたため、5001に設定)
+    debug = os.environ.get('DEBUG', 'True') == 'True'  # 本番環境ではFalseに設定
+    use_https = os.environ.get('USE_HTTPS', 'True') == 'True'
+    
+    # SSL設定
+    ssl_context = ('cert.pem', 'key.pem') if use_https else None
+    
+    app.run(
+        host = host
+        ,port = port
+        ,debug = debug
+        ,ssl_context = ssl_context
+    )
